@@ -10,6 +10,11 @@ load_dotenv()
 # We will pass it at runtime or use type hints on the run method if supported, 
 # but per previous error, we are removing it from __init__.
 
+# Check API Key
+api_key = os.getenv("OPENROUTER_API_KEY")
+if not api_key or "..." in api_key or len(api_key) < 10:
+    print("WARNING: OPENROUTER_API_KEY appears invalid or missing. Please check your .env file.")
+
 agent = Agent(
     model="openrouter:mistralai/mistral-7b-instruct",
 )
