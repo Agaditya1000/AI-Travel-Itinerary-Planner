@@ -11,6 +11,11 @@ load_dotenv()
 
 app = FastAPI()
 
+# Add root endpoint for health check (and Vercel verification)
+@app.get("/")
+async def root():
+    return {"status": "ok", "message": "AI Travel Planner Backend is running"}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], # For dev purposes, allow all. In prod, specify domain.
