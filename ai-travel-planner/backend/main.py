@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from schemas import TripRequest, TripResponse
 from agent import agent
 from utils.retry import retry_agent
-from utils.images import get_destination_image
+from utils.images import get_wikipedia_image
 import os
 from dotenv import load_dotenv
 
@@ -74,16 +74,16 @@ async def generate_trip(data: TripRequest):
                     cleaned_json = data_obj.replace("```json", "").replace("```", "").strip()
                 
                 parsed = json.loads(cleaned_json)
-                # Generate Image URL (Real Image)
-                image_url = get_destination_image(data.destination)
-                parsed['image_url'] = image_url
+                # Fetch image from Wikipedia
+                wiki_image = get_wikipedia_image(data.destination)
+                parsed['image_url'] = wiki_image if wiki_image else f"https://image.pollinations.ai/prompt/{data.destination}%20cinematic%20travel%204k"
                 return TripResponse(**parsed)
             except Exception:
                 # If parsing fails, we might just return an error or try raw
                 raise ValueError(f"Failed to parse LLM response: {data_obj}")
         elif isinstance(data_obj, dict):
-             # Generate Image URL for dict response too
-             data_obj['image_url'] = get_destination_image(data.destination)
+             wiki_image = get_wikipedia_image(data.destination)
+             data_obj['image_url'] = wiki_image if wiki_image else f"https://image.pollinations.ai/prompt/{data.destination}%20cinematic%20travel%204k"
              return TripResponse(**data_obj)
              
         return data_obj
@@ -97,11 +97,11 @@ async def generate_trip(data: TripRequest):
                 total_days=data.days,
                 total_budget=data.budget,
                 cost_breakdown={"Accommodation": data.budget * 0.4, "Food": data.budget * 0.3, "Activities": data.budget * 0.3},
+                image_url=get_wikipedia_image(data.destination) or f"https://image.pollinations.ai/prompt/{data.destination}%20cinematic%20travel%204k",
                 itinerary=[
                     {"day": i+1, "activities": ["Visit City Center", "Lunch at Local Cafe", "Sunset Viewpoint"], "estimated_cost": int(data.budget/data.days)}
                     for i in range(data.days)
-                ],
-                image_url=get_destination_image(data.destination)
+                ]
             )
         raise HTTPException(status_code=500, detail=str(e))
 
