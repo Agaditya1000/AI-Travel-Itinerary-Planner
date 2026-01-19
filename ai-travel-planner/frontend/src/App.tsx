@@ -1,5 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sparkles, MapPin, Calendar, DollarSign, Compass } from 'lucide-react';
+
+const HERO_IMAGES = [
+  { url: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1200&auto=format&fit=crop", alt: "Swiss Alps" },
+  { url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1200&auto=format&fit=crop", alt: "Tropical Paradise" },
+  { url: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?q=80&w=1200&auto=format&fit=crop", alt: "Alpine Lakes" },
+  { url: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?q=80&w=1200&auto=format&fit=crop", alt: "Cinque Terre" },
+  { url: "https://images.unsplash.com/photo-1528127269322-539801943592?q=80&w=1200&auto=format&fit=crop", alt: "Thailand Temples" },
+  { url: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=1200&auto=format&fit=crop", alt: "Lisbon Streets" },
+  { url: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1200&auto=format&fit=crop", alt: "Rice Terraces" },
+  { url: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1200&auto=format&fit=crop", alt: "Parisian Dreams" },
+  { url: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1200&auto=format&fit=crop", alt: "Kyoto Gardens" }, // Replaced Rome with Kyoto for variety
+  { url: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=1200&auto=format&fit=crop", alt: "Island Getaway" }
+];
 
 function App() {
   const [formData, setFormData] = useState({
@@ -14,6 +27,16 @@ function App() {
   const [itinerary, setItinerary] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+
+  // Slideshow state
+  const [currentImage, setCurrentImage] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImage((prev) => (prev + 1) % HERO_IMAGES.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +107,47 @@ function App() {
           <div className="max-w-2xl w-full">
             {/* Hero Section */}
             <div className="text-center mb-12 space-y-4">
+              {/* Interactive Hero Slideshow */}
+              <div className="relative w-full max-w-2xl mx-auto mb-8 group perspective-1000">
+                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
+
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl aspect-video bg-slate-900">
+                  {HERO_IMAGES.map((img, index) => (
+                    <div
+                      key={index}
+                      className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentImage ? 'opacity-100' : 'opacity-0'
+                        }`}
+                    >
+                      <img
+                        src={img.url}
+                        alt={img.alt}
+                        className="w-full h-full object-cover transform transition-transform duration-[10000ms] scale-100 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                      <div className="absolute bottom-6 left-6 text-white text-left transform transition-all duration-700 delay-300">
+                        <p className="text-lg font-medium tracking-wide text-indigo-400 mb-1">Discover</p>
+                        <h3 className="text-3xl font-bold leading-tight">{img.alt}</h3>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Navigation Dots */}
+                  <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+                    {HERO_IMAGES.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentImage(index)}
+                        className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentImage
+                          ? 'bg-white w-6'
+                          : 'bg-white/50 hover:bg-white/80'
+                          }`}
+                        aria-label={`Go to slide ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/60 backdrop-blur-sm rounded-full border border-indigo-100/50 shadow-sm mb-4">
                 <Sparkles className="w-4 h-4 text-indigo-600" />
                 <span className="text-sm font-medium text-indigo-900">AI-Powered Travel Planning</span>
@@ -241,24 +305,21 @@ function App() {
             {/* Results Display */}
             {itinerary && (
               <div className="mt-12 space-y-8 animate-fade-in-up">
-                {/* Destination Image */}
+                <h2 className="text-3xl font-bold text-center text-slate-800 mb-8">Your {itinerary.destination} Itinerary</h2>
+
                 {itinerary.image_url && (
-                  <div className="relative h-64 md:h-80 w-full overflow-hidden rounded-3xl shadow-2xl mb-8 group">
+                  <div className="mb-8 rounded-2xl overflow-hidden shadow-2xl shadow-indigo-500/20 aspect-video relative group">
                     <img
                       src={itinerary.image_url}
                       alt={itinerary.destination}
                       className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                    <h2 className="absolute bottom-6 left-8 text-4xl md:text-5xl font-bold text-white tracking-tight drop-shadow-lg">
-                      {itinerary.destination}
-                    </h2>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                    <div className="absolute bottom-6 left-6 text-white">
+                      <p className="text-lg font-medium opacity-90">Exploring</p>
+                      <h3 className="text-3xl font-bold">{itinerary.destination}</h3>
+                    </div>
                   </div>
-                )}
-
-                {/* Stats Card */}
-                {!itinerary.image_url && (
-                  <h2 className="text-3xl font-bold text-center text-slate-800">Your {itinerary.destination} Itinerary</h2>
                 )}
 
                 <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/50">
