@@ -11,6 +11,7 @@ load_dotenv()
 
 app = FastAPI()
 
+<<<<<<< HEAD
 # Helper to enforce math consistency
 def fix_trip_math(trip: TripResponse) -> TripResponse:
     # 1. Calculate actual sum of daily costs
@@ -56,6 +57,8 @@ def fix_trip_math(trip: TripResponse) -> TripResponse:
         
     return trip
 
+=======
+>>>>>>> 2e8bcea1761a07e90cb34af10392f97bd45da645
 # Add root endpoint for health check (and Vercel verification)
 @app.get("/")
 async def root():
@@ -85,7 +88,10 @@ async def generate_trip(data: TripRequest):
         
         # Lambda for retry
         # We pass a lambda that returns the coroutine, so it can be re-created on retry
+<<<<<<< HEAD
         # Removed result_type as it was causing crashes in this version of pydantic-ai
+=======
+>>>>>>> 2e8bcea1761a07e90cb34af10392f97bd45da645
         result = await retry_agent(lambda: agent.run(prompt))
         
         # Since we removed result_type, result.data might be a string (or dict if implicit).
@@ -105,6 +111,7 @@ async def generate_trip(data: TripRequest):
              data_obj = result.output
         elif hasattr(result, 'content'): 
              data_obj = result.content
+<<<<<<< HEAD
 
 
         print(f"DEBUG: data_obj type: {type(data_obj)}")
@@ -168,24 +175,69 @@ async def generate_trip(data: TripRequest):
         print(f"WARNING: Could not process result of type {type(data_obj)}")
         return data_obj
               
+=======
+        else:
+            # Fallback for unknown structure (maybe it's just the string?)
+            print("WARNING: Could not find .data or .content on result object.")
+            data_obj = str(result)
+        if isinstance(data_obj, str):
+            # Try to parse JSON from string
+            import json
+            import re
+            try:
+                # robust cleanup using regex to find the first json-like object
+                # This finds anything starting with { and ending with } 
+                # (simple approach, works for most LLM outputs)
+                match = re.search(r'(\{.*\})', data_obj, re.DOTALL)
+                if match:
+                    cleaned_json = match.group(1)
+                else:
+                    # fallback to basic cleanup
+                    cleaned_json = data_obj.replace("```json", "").replace("```", "").strip()
+                
+                parsed = json.loads(cleaned_json)
+                # Fetch image from Wikipedia
+                wiki_image = get_wikipedia_image(data.destination)
+                parsed['image_url'] = wiki_image if wiki_image else f"https://image.pollinations.ai/prompt/{data.destination}%20cinematic%20travel%204k"
+                return TripResponse(**parsed)
+            except Exception:
+                # If parsing fails, we might just return an error or try raw
+                raise ValueError(f"Failed to parse LLM response: {data_obj}")
+        elif isinstance(data_obj, dict):
+             wiki_image = get_wikipedia_image(data.destination)
+             data_obj['image_url'] = wiki_image if wiki_image else f"https://image.pollinations.ai/prompt/{data.destination}%20cinematic%20travel%204k"
+             return TripResponse(**data_obj)
+             
+>>>>>>> 2e8bcea1761a07e90cb34af10392f97bd45da645
         return data_obj
     except Exception as e:
         print(f"Error generating trip: {e}")
         # Fallback to mock data if API fails (e.g. 401)
         if "401" in str(e) or "429" in str(e) or "User not found" in str(e):
             print("Falling back to MOCK data due to API error.")
+<<<<<<< HEAD
             mock_trip = TripResponse(
                 destination=data.destination,
                 total_days=data.days,
                 total_budget=data.budget,
                 cost_breakdown={"Accommodation": int(data.budget * 0.4), "Food": int(data.budget * 0.3), "Activities": int(data.budget * 0.3)},
+=======
+            return TripResponse(
+                destination=data.destination,
+                total_days=data.days,
+                total_budget=data.budget,
+                cost_breakdown={"Accommodation": data.budget * 0.4, "Food": data.budget * 0.3, "Activities": data.budget * 0.3},
+>>>>>>> 2e8bcea1761a07e90cb34af10392f97bd45da645
                 image_url=get_wikipedia_image(data.destination) or f"https://image.pollinations.ai/prompt/{data.destination}%20cinematic%20travel%204k",
                 itinerary=[
                     {"day": i+1, "activities": ["Visit City Center", "Lunch at Local Cafe", "Sunset Viewpoint"], "estimated_cost": int(data.budget/data.days)}
                     for i in range(data.days)
                 ]
             )
+<<<<<<< HEAD
             return fix_trip_math(mock_trip)
+=======
+>>>>>>> 2e8bcea1761a07e90cb34af10392f97bd45da645
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
