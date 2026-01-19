@@ -30,7 +30,7 @@ async def generate_trip(data: TripRequest):
         # I'll use model_dump() if V2 is installed (likely) or dict() if V1.
         # Pydantic-AI requires Pydantic V2.
         
-        prompt = f"Plan a trip to {data.destination} for {data.days} days with a budget of {data.budget}."
+        prompt = f"Plan a trip to {data.destination} for {data.days} days with a budget of {data.budget}. Travel Style: {data.travel_style}."
         
         # Lambda for retry
         result = retry_agent(lambda: agent.run_sync(prompt))
