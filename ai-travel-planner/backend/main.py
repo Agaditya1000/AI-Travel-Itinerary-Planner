@@ -11,7 +11,6 @@ load_dotenv()
 
 app = FastAPI()
 
-<<<<<<< HEAD
 # Helper to enforce math consistency
 def fix_trip_math(trip: TripResponse) -> TripResponse:
     # 1. Calculate actual sum of daily costs
@@ -57,8 +56,6 @@ def fix_trip_math(trip: TripResponse) -> TripResponse:
         
     return trip
 
-=======
->>>>>>> 2e8bcea1761a07e90cb34af10392f97bd45da645
 # Add root endpoint for health check (and Vercel verification)
 @app.get("/")
 async def root():
@@ -75,66 +72,32 @@ app.add_middleware(
 @app.post("/generate-trip", response_model=TripResponse)
 async def generate_trip(data: TripRequest):
     try:
-        # The user snippet used agent.run_sync(data.dict()). 
-        # Pydantic AI usually supports run or run_sync.
-        # We'll wrap it in the retry logic as requested.
-        
-        # Note: data.dict() is deprecated in Pydantic V2, use data.model_dump() usually, 
-        # but for compatibility with the user's instructions (which might be V1 style or just habit), 
-        # I'll use model_dump() if V2 is installed (likely) or dict() if V1.
-        # Pydantic-AI requires Pydantic V2.
-        
         prompt = f"Plan a trip to {data.destination} for {data.days} days with a budget of {data.budget}. Travel Style: {data.travel_style}."
         
-        # Lambda for retry
-        # We pass a lambda that returns the coroutine, so it can be re-created on retry
-<<<<<<< HEAD
-        # Removed result_type as it was causing crashes in this version of pydantic-ai
-=======
->>>>>>> 2e8bcea1761a07e90cb34af10392f97bd45da645
+        # Retry agent call
         result = await retry_agent(lambda: agent.run(prompt))
         
-        # Since we removed result_type, result.data might be a string (or dict if implicit).
-        # We need to ensure it matches TripResponse.
-        # If result.data is a string, we parse it.
-        # However, without result_type, pydantic-ai might just return text.
-        # Let's assume text and try to parse it.
-        # Wait, if result.data is already a model, good. If not, we try to parse.
-        
-        # Debug: Print result attributes
-        print(f"DEBUG: Result type: {type(result)}")
-        print(f"DEBUG: Result dir: {dir(result)}")
-        
+        # Extract data from result
         if hasattr(result, 'data'):
             data_obj = result.data
         elif hasattr(result, 'output'): 
              data_obj = result.output
         elif hasattr(result, 'content'): 
              data_obj = result.content
-<<<<<<< HEAD
+        else:
+             data_obj = result
 
-
-        print(f"DEBUG: data_obj type: {type(data_obj)}")
-        print(f"DEBUG: TripResponse type: {TripResponse}")
-        print(f"DEBUG: isinstance check: {isinstance(data_obj, TripResponse)}")
-
-        # Helper to convert to dict safely
+        # Convert to Dictionary
         trip_dict = {}
-        
-        # Checking for attributes is safer than isinstance during reloads
         if hasattr(data_obj, 'model_dump'):
-             print(f"DEBUG: Object has model_dump. Converting to dict.")
              trip_dict = data_obj.model_dump()
         elif hasattr(data_obj, 'dict'):
-             print(f"DEBUG: Object has dict. Converting to dict.")
              trip_dict = data_obj.dict()
         elif isinstance(data_obj, dict):
-             print(f"DEBUG: Object is already dict.")
              trip_dict = data_obj
         
-        # Handle String (JSON)
+        # Handle String (JSON) parsing if needed
         elif isinstance(data_obj, str):
-             print(f"DEBUG: Object is string. Parsing JSON.")
              import json
              import re
              try:
@@ -142,102 +105,43 @@ async def generate_trip(data: TripRequest):
                  cleaned_json = match.group(1) if match else data_obj.replace("```json", "").replace("```", "").strip()
                  trip_dict = json.loads(cleaned_json)
              except:
-                 pass 
-        
-        # If manual parsing failed but we have a string, try Pydantic's built-in parser
-        if not trip_dict and isinstance(data_obj, str):
-             try:
-                 print(f"DEBUG: Manual parsing failed. Trying Pydantic model_validate_json.")
-                 # This handles strict JSON validation
-                 parsed_obj = TripResponse.model_validate_json(data_obj)
-                 # If successful, use its dict
-                 trip_dict = parsed_obj.model_dump()
-                 print(f"DEBUG: Pydantic parsing successful.")
-             except Exception as e:
-                 print(f"DEBUG: Pydantic parsing failed: {e}")
-                 # If this fails, we really can't do anything but return raw
-                 pass
+                 # Try Pydantic validation as last resort
+                 try:
+                     parsed_obj = TripResponse.model_validate_json(data_obj)
+                     trip_dict = parsed_obj.model_dump()
+                 except:
+                     pass
 
         # If we successfully got a dict, rebuild and fix
         if trip_dict:
              wiki_image = get_wikipedia_image(data.destination)
-             # Use safe get
              current_img = trip_dict.get('image_url')
              trip_dict['image_url'] = wiki_image if wiki_image else (current_img or f"https://image.pollinations.ai/prompt/{data.destination}%20cinematic%20travel%204k")
              
-             # Rebuild object from scratch using OUR class reference
              response_obj = TripResponse(**trip_dict)
              response_obj.total_budget = data.budget
-             print(f"DEBUG: Handled via Dictionary -> TripResponse. Force Budget: {response_obj.total_budget}")
              return fix_trip_math(response_obj)
              
-        # Fallback
-        print(f"WARNING: Could not process result of type {type(data_obj)}")
-        return data_obj
-              
-=======
-        else:
-            # Fallback for unknown structure (maybe it's just the string?)
-            print("WARNING: Could not find .data or .content on result object.")
-            data_obj = str(result)
-        if isinstance(data_obj, str):
-            # Try to parse JSON from string
-            import json
-            import re
-            try:
-                # robust cleanup using regex to find the first json-like object
-                # This finds anything starting with { and ending with } 
-                # (simple approach, works for most LLM outputs)
-                match = re.search(r'(\{.*\})', data_obj, re.DOTALL)
-                if match:
-                    cleaned_json = match.group(1)
-                else:
-                    # fallback to basic cleanup
-                    cleaned_json = data_obj.replace("```json", "").replace("```", "").strip()
-                
-                parsed = json.loads(cleaned_json)
-                # Fetch image from Wikipedia
-                wiki_image = get_wikipedia_image(data.destination)
-                parsed['image_url'] = wiki_image if wiki_image else f"https://image.pollinations.ai/prompt/{data.destination}%20cinematic%20travel%204k"
-                return TripResponse(**parsed)
-            except Exception:
-                # If parsing fails, we might just return an error or try raw
-                raise ValueError(f"Failed to parse LLM response: {data_obj}")
-        elif isinstance(data_obj, dict):
-             wiki_image = get_wikipedia_image(data.destination)
-             data_obj['image_url'] = wiki_image if wiki_image else f"https://image.pollinations.ai/prompt/{data.destination}%20cinematic%20travel%204k"
-             return TripResponse(**data_obj)
-             
->>>>>>> 2e8bcea1761a07e90cb34af10392f97bd45da645
-        return data_obj
+        # If parsing completely failed, raise logic will catch it
+        raise ValueError("Could not parse trip data")
+
     except Exception as e:
         print(f"Error generating trip: {e}")
-        # Fallback to mock data if API fails (e.g. 401)
-        if "401" in str(e) or "429" in str(e) or "User not found" in str(e):
-            print("Falling back to MOCK data due to API error.")
-<<<<<<< HEAD
+        # Fallback to mock data if API fails
+        if "401" in str(e) or "429" in str(e) or "User not found" in str(e) or "parse" in str(e) or "validation" in str(e):
+            print("Falling back to MOCK data.")
             mock_trip = TripResponse(
                 destination=data.destination,
                 total_days=data.days,
                 total_budget=data.budget,
                 cost_breakdown={"Accommodation": int(data.budget * 0.4), "Food": int(data.budget * 0.3), "Activities": int(data.budget * 0.3)},
-=======
-            return TripResponse(
-                destination=data.destination,
-                total_days=data.days,
-                total_budget=data.budget,
-                cost_breakdown={"Accommodation": data.budget * 0.4, "Food": data.budget * 0.3, "Activities": data.budget * 0.3},
->>>>>>> 2e8bcea1761a07e90cb34af10392f97bd45da645
                 image_url=get_wikipedia_image(data.destination) or f"https://image.pollinations.ai/prompt/{data.destination}%20cinematic%20travel%204k",
                 itinerary=[
                     {"day": i+1, "activities": ["Visit City Center", "Lunch at Local Cafe", "Sunset Viewpoint"], "estimated_cost": int(data.budget/data.days)}
                     for i in range(data.days)
                 ]
             )
-<<<<<<< HEAD
             return fix_trip_math(mock_trip)
-=======
->>>>>>> 2e8bcea1761a07e90cb34af10392f97bd45da645
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

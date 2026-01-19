@@ -1,10 +1,6 @@
 import { useState, useEffect } from 'react';
-<<<<<<< HEAD
 import { Sparkles, MapPin, Calendar, DollarSign, Compass, Download } from 'lucide-react';
 import { jsPDF } from 'jspdf';
-=======
-import { Sparkles, MapPin, Calendar, DollarSign, Compass } from 'lucide-react';
->>>>>>> 2e8bcea1761a07e90cb34af10392f97bd45da645
 
 const HERO_IMAGES = [
   { url: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1200&auto=format&fit=crop", alt: "Swiss Alps" },
@@ -81,7 +77,6 @@ function App() {
     }
   };
 
-<<<<<<< HEAD
   const handleDownload = () => {
     if (!itinerary) return;
 
@@ -138,8 +133,6 @@ function App() {
     doc.save(`Trip_Plan_${itinerary.destination.replace(/\s+/g, '_')}.pdf`);
   };
 
-=======
->>>>>>> 2e8bcea1761a07e90cb34af10392f97bd45da645
   const travelStyles = [
     { id: 'luxury', label: 'Luxury', emoji: '✨' },
     { id: 'adventure', label: 'Adventure', emoji: '🏔️' },
@@ -387,18 +380,12 @@ function App() {
                     </div>
                   </div>
                 )}
-
                 <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/50">
-<<<<<<< HEAD
                   <div className="flex flex-col md:flex-row justify-between items-center mb-6 pb-6 border-b border-indigo-100 gap-4">
-=======
-                  <div className="flex flex-col md:flex-row justify-between items-center mb-6 pb-6 border-b border-indigo-100">
->>>>>>> 2e8bcea1761a07e90cb34af10392f97bd45da645
                     <div className="text-center md:text-left mb-4 md:mb-0">
                       <p className="text-sm text-slate-500 uppercase tracking-wide font-semibold">Total Cost</p>
                       <p className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">${itinerary.total_budget}</p>
                     </div>
-<<<<<<< HEAD
 
                     <button
                       onClick={handleDownload}
@@ -407,14 +394,11 @@ function App() {
                       <Download className="w-5 h-5" />
                       Download PDF
                     </button>
-
-=======
->>>>>>> 2e8bcea1761a07e90cb34af10392f97bd45da645
                     <div className="text-center md:text-right">
                       <p className="text-sm text-slate-500 uppercase tracking-wide font-semibold">Duration</p>
                       <p className="text-2xl font-bold text-slate-800">{itinerary.total_days} Days</p>
                     </div>
-                  </div>
+                  </div >
 
                   <div className="space-y-6">
                     {itinerary.itinerary?.map((day: any, idx: number) => (
@@ -433,18 +417,19 @@ function App() {
                       </div>
                     ))}
                   </div>
-                </div>
-              </div>
-            )}
+                </div >
+              </div >
+            )
+            }
 
             {/* Additional Info */}
             <p className="text-center text-sm text-slate-500 mt-8">
               Powered by advanced AI to create experiences as unique as you are
             </p>
-          </div>
-        </main>
-      </div>
-    </div>
+          </div >
+        </main >
+      </div >
+    </div >
   );
 }
 
