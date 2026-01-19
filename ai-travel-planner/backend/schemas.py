@@ -18,3 +18,4 @@ class TripResponse(BaseModel):
     total_budget: int
     cost_breakdown: Dict[str, int]
     itinerary: List[DayPlan]
+    image_url: str = None
