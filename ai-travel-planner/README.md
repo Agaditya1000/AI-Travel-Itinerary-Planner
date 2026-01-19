@@ -2,7 +2,7 @@
 
 A smart, budget-aware travel planner powered by **AI (Mistral 7B)** that generates personalized, day-wise itineraries with real cost estimates and PDF download capabilities.
 
-![App Screenshot](https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1200&auto=format&fit=crop)
+
 
 ## 🚀 Live Demo
 - **Frontend (Netlify)**: [https://travelai1000.netlify.app/](https://travelai1000.netlify.app/)
