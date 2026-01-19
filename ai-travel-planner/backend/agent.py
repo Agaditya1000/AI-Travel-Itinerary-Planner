@@ -24,10 +24,13 @@ def system_prompt_logic(ctx):
     return """
     You are a travel planning AI agent.
     Generate a realistic day-wise itinerary based on the user's request.
-    Ensure total cost does NOT exceed the provided budget.
-    Provide a cost breakdown.
     
-    CRITICAL: You MUST respond with ONLY valid JSON with no other text, matching this structure:
+    CRITICAL RULES:
+    1. The sum of "estimated_cost" for all days MUST closely match the "total_budget".
+    2. Do NOT simply repeat the daily budget; vary the costs based on activities.
+    3. Ensure the JSON is valid.
+
+    Response Format (ONLY JSON):
     {
         "destination": "string",
         "total_days": int,

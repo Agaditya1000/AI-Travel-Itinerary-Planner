@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, MapPin, Calendar, DollarSign, Compass } from 'lucide-react';
+import { Sparkles, MapPin, Calendar, DollarSign, Compass, Download } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 
 const HERO_IMAGES = [
   { url: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1200&auto=format&fit=crop", alt: "Swiss Alps" },
@@ -74,6 +75,62 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDownload = () => {
+    if (!itinerary) return;
+
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let yPos = 20;
+
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(79, 70, 229); // Indigo color
+    doc.text(`Trip to ${itinerary.destination}`, pageWidth / 2, yPos, { align: 'center' });
+    yPos += 15;
+
+    // Details logic
+    doc.setFontSize(12);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Total Duration: ${itinerary.total_days} Days`, 20, yPos);
+    doc.text(`Total Budget: $${itinerary.total_budget}`, pageWidth - 20, yPos, { align: 'right' });
+    yPos += 15;
+
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, yPos, pageWidth - 20, yPos);
+    yPos += 15;
+
+    // Itinerary
+    itinerary.itinerary?.forEach((day: any) => {
+      // Check for page break
+      if (yPos > 270) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Day ${day.day}`, 20, yPos);
+      yPos += 7;
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80, 80, 80);
+
+      day.activities?.forEach((activity: string) => {
+        doc.text(`• ${activity}`, 25, yPos);
+        yPos += 6;
+      });
+
+      doc.setFont('helvetica', 'italic');
+      doc.setTextColor(5, 150, 105); // Emerald color
+      doc.text(`Est. Cost: $${day.estimated_cost}`, 25, yPos);
+      yPos += 15;
+    });
+
+    doc.save(`Trip_Plan_${itinerary.destination.replace(/\s+/g, '_')}.pdf`);
   };
 
   const travelStyles = [
@@ -325,11 +382,20 @@ function App() {
                 )}
 
                 <div className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-xl border border-white/50">
-                  <div className="flex flex-col md:flex-row justify-between items-center mb-6 pb-6 border-b border-indigo-100">
+                  <div className="flex flex-col md:flex-row justify-between items-center mb-6 pb-6 border-b border-indigo-100 gap-4">
                     <div className="text-center md:text-left mb-4 md:mb-0">
                       <p className="text-sm text-slate-500 uppercase tracking-wide font-semibold">Total Cost</p>
                       <p className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">${itinerary.total_budget}</p>
                     </div>
+
+                    <button
+                      onClick={handleDownload}
+                      className="flex items-center gap-2 px-6 py-3 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-100 transition-colors font-medium"
+                    >
+                      <Download className="w-5 h-5" />
+                      Download PDF
+                    </button>
+
                     <div className="text-center md:text-right">
                       <p className="text-sm text-slate-500 uppercase tracking-wide font-semibold">Duration</p>
                       <p className="text-2xl font-bold text-slate-800">{itinerary.total_days} Days</p>

@@ -1,0 +1,4 @@
+DEBUG: generate_trip called for Paris. Budget: 2500
+DEBUG: generate_trip called for Paris. Budget: 2500
+DEBUG: trip_dict extraction successful. Keys: ['destination', 'total_days', 'total_budget', 'cost_breakdown', 'itinerary']
+DEBUG: fix_trip_math called. Budget: 2500, Daily Sum: 700
