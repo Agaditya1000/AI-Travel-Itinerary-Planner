@@ -46,7 +46,9 @@ function App() {
     setItinerary(null);
 
     try {
-      const response = await fetch('http://localhost:8000/generate-trip', {
+      // Use environment variable or fallback to local
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/generate-trip';
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
